@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <RelativeLayout
+        android:id="@+id/UpperPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/primary">
+
+        <LinearLayout
+            android:id="@+id/LanguageOptions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="@dimen/button_margin">
+
+            <TextView
+                android:id="@+id/SourceLang"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_weight="1"
+                android:text="Source"
+                android:textColor="@color/text" />
+
+            <ImageView
+                android:id="@+id/LangSwap"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="@dimen/button_margin"
+                android:layout_marginStart="@dimen/button_margin"
+                android:layout_weight="1"
+                app:srcCompat="@drawable/ic_switch_24dp" />
+
+            <TextView
+                android:id="@+id/DestLang"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="@dimen/button_margin"
+                android:layout_marginStart="@dimen/button_margin"
+                android:layout_weight="1"
+                android:text="Dest"
+                android:textColor="@color/text" />
+        </LinearLayout>
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:id="@+id/Input"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/InputField"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/input_height"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:layout_margin="@dimen/container_margin"
+            android:background="@drawable/input_border_style"
+            android:gravity="top"
+            android:inputType="textNoSuggestions"
+            android:textCursorDrawable="@color/button"
+            android:textSize="15sp" />
+
+        <ImageView
+            android:id="@+id/ClearButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/InputField"
+            android:layout_alignLeft="@+id/InputField"
+            android:layout_alignStart="@+id/InputField"
+            android:layout_margin="@dimen/container_margin"
+            app:srcCompat="@drawable/ic_close_24dp" />
+
+        <LinearLayout
+            android:id="@+id/TextFunctionality"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignEnd="@+id/InputField"
+            android:layout_alignRight="@+id/InputField"
+            android:layout_alignTop="@+id/InputField"
+            android:layout_margin="@dimen/button_margin"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/MicroButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/ic_mic_24dp" />
+
+            <ImageView
+                android:id="@+id/PronounceInputButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/button_margin"
+                app:srcCompat="@drawable/ic_volume_up_24dp" />
+        </LinearLayout>
+
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/TranslationSection"
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:baselineAligned="false">
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="@dimen/container_margin"
+            android:layout_marginStart="@dimen/container_margin"
+            android:layout_weight="5"
+            android:baselineAligned="false"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/DicTranslation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text"
+                android:textSize="@dimen/big_text" />
+
+            <ListView
+                android:id="@+id/DictionaryList"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/TranslationFunctionality"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/pronounceTranslate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:srcCompat="@drawable/ic_volume_up_24dp" />
+
+            <ImageView
+                android:id="@+id/bookmarkTranslate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/button_margin"
+                android:tint="@color/button"
+                app:srcCompat="@drawable/ic_bookmark_black_24dp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

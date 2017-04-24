@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#ffdd61</color>
+    <color name="primaryDark">#e2c355</color>
+    <color name="grey">#cbcbcb</color>
+    <color name="text">#000000</color>
+    <color name="button">#858e98</color>
+    <color name="clarification">#8d634d</color>
+    <color name="dictionary_translation">#4b7893</color>
+    <color name="speech_part">#a37d92</color>
+    <color name="number_color">#9b9b9b</color>
+</resources>
