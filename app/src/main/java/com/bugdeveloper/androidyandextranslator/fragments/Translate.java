@@ -283,13 +283,18 @@ public class Translate extends Fragment {
         @Override
         protected JSONObject doInBackground(String... params) {
 
-            String json;
+            String json = null;
 
             List<BasicNameValuePair> args = new ArrayList<>(2);
             args.add(new BasicNameValuePair("key", TRANSLATE_KEY));
             args.add(new BasicNameValuePair("ui", params[0]));
 
-            json = QuerySender.PostQuery(LANGUAGES_API, args);
+            try {
+                json = QuerySender.PostQuery(LANGUAGES_API, args);
+            } catch (IOException e) {
+                cancel(false);
+                e.printStackTrace();
+            }
 
             JSONObject jsonObj = null;
 
@@ -365,7 +370,12 @@ public class Translate extends Fragment {
                 args.add(new BasicNameValuePair("text", text));
                 args.add(new BasicNameValuePair("ui", uiLanguageCode));
 
-                JSONObject response = new JSONObject(QuerySender.PostQuery(DataStorage.TRANSLATE_API, args));
+                JSONObject response = null;
+                try {
+                    response = new JSONObject(QuerySender.PostQuery(DataStorage.TRANSLATE_API, args));
+                } catch (IOException e) {
+                    cancel(false);
+                }
 
                 translation = response.getJSONArray("text").getString(0);
 
@@ -378,6 +388,9 @@ public class Translate extends Fragment {
 
                 dictionary = QuerySender.PostQuery(DataStorage.DICTIONARY_API, args);
             } catch (JSONException e) {
+                e.printStackTrace();
+                cancel(false);
+            } catch (IOException e) {
                 e.printStackTrace();
                 cancel(false);
             }

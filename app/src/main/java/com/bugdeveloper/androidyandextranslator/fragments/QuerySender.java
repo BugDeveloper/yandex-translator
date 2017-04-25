@@ -24,7 +24,7 @@ public final class QuerySender {
     private QuerySender() {
     }
 
-    public static String PostQuery(String api, Iterable<BasicNameValuePair> args) {
+    public static String PostQuery(String api, Iterable<BasicNameValuePair> args) throws IOException {
 
         HttpClient httpclient = HttpClients.createDefault();
         HttpPost httppost = new HttpPost(api);
@@ -42,11 +42,8 @@ public final class QuerySender {
         }
 
         HttpResponse response = null;
-        try {
-            response = httpclient.execute(httppost);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+        response = httpclient.execute(httppost);
 
         HttpEntity entity = response.getEntity();
 
