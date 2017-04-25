@@ -76,16 +76,23 @@ public class Translate extends Fragment {
         return fragmentView;
     }
 
+    /**
+     * The method is responsible for getting all available
+     * languages from Yandex Api or from cached data.
+     */
     private void initializeLanguageMap() {
         try {
             languageMap = (BiMap<String, String>) FileStorage.Load(FileStorage.LANGUAGES);
             initializeView();
         } catch (IOException e) {
             languageMap = HashBiMap.create();
-            new DictionaryDownloader().execute(uiLanguageCode);
+            new LanguagesDownloader().execute(uiLanguageCode);
         }
     }
 
+    /**
+     * Method initializeTranslationMap serves for getting HashMap of translations from cache.
+     */
     private void initializeTranslationMap() {
         try {
             translationMap = (HashMap<String, HashMap<String, String[]>>) FileStorage.Load(FileStorage.TRANSLATIONS);
@@ -99,22 +106,44 @@ public class Translate extends Fragment {
         return languageMap;
     }
 
+
+    /**
+     * Class constructor only initializes uiLanguageCode variable with
+     * value of default system language.
+     */
     public Translate() {
         uiLanguageCode = Locale.getDefault().getLanguage();
     }
 
+    /**
+     * A wrapper for easy getting current source language.
+     * @return Current language from which translation is going to be done.
+     */
     private String getSourceLang() {
         return sourceLang.getText().toString();
     }
 
+    /**
+     * A wrapper for easy getting current destination language.
+     * @return Current language to which translation is going to be done.
+     */
     private String getDestLang() {
         return destLang.getText().toString();
     }
 
+    /**
+     * Method for getting language code for certain full language name.
+     * @param lang Full name of language.
+     * @return Language code.
+     */
     private String getLangCode(String lang) {
         return languageMap.inverse().get(lang);
     }
 
+    /**
+     * The method initializes upper panel for language switching: look for button references,
+     * set default translate direction and set click handlers.
+     */
     private void initializeLanguageSwitcher() {
         sourceLang = (TextView) fragmentView.findViewById(R.id.SourceLang);
         destLang = (TextView) fragmentView.findViewById(R.id.DestLang);
@@ -142,11 +171,20 @@ public class Translate extends Fragment {
         });
     }
 
+    /**
+     * Starts new activity with list of possible languages to select and wait for new value.
+     */
     private void startLanguageSelection() {
         Intent intent = new Intent(getActivity(), SelectLanguage.class);
         startActivityForResult(intent, 1);
     }
 
+    /**
+     * Sets chosen language.
+     * @param requestCode
+     * @param resultCode
+     * @param data Returned Intent data with set language parameter.
+     */
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (data == null) return;
         String lang = data.getStringExtra("lang");
@@ -155,6 +193,9 @@ public class Translate extends Fragment {
             languageToChange.setText(lang);
     }
 
+    /**
+     * Calls all needed initialization methods.
+     */
     private void initializeView() {
         initializeLanguageSwitcher();
         initializeInputField();
@@ -163,18 +204,31 @@ public class Translate extends Fragment {
         initializeThreads();
     }
 
+    /**
+     * Call to all button initialization methods.
+     */
     private void initializeButtons() {
         initializeClear();
     }
 
+    /**
+     * Makes view animated.
+     * @param v View to animate.
+     */
     private void animateView(View v) {
         v.startAnimation(AnimationUtils.loadAnimation(getActivity(), R.anim.image_animation));
     }
 
+    /**
+     * Initializes thread to avoid possible NullReferenceExceptions.
+     */
     private void initializeThreads() {
         translationThread = new TranslationProcessor();
     }
 
+    /**
+     * Initializes clear button: look for it and set click handler.
+     */
     private void initializeClear() {
         ImageView imageView = (ImageView) fragmentView.findViewById(R.id.ClearButton);
         imageView.setOnClickListener(v -> {
@@ -183,17 +237,28 @@ public class Translate extends Fragment {
         });
     }
 
+
+    /**
+     * Method to clear all translation views.
+     */
     private void clear() {
         inputText.setText("");
         translation.setText("");
         dictionaryList.setAdapter(null);
     }
 
+    /**
+     * Finds references for setting translation.
+     */
     private void initializeTranslationSection() {
         dictionaryList = (ListView) fragmentView.findViewById(R.id.DictionaryList);
         translation = (TextView) fragmentView.findViewById(R.id.DicTranslation);
     }
 
+    /**
+     * Finds references to input field, set key listener to hide keyboard when enter key was pressed,
+     * add text changed listener to translate.
+     */
     private void initializeInputField() {
         inputText = (EditText) fragmentView.findViewById(R.id.InputField);
         inputText.setOnKeyListener((v, keyCode, event) -> {
@@ -236,6 +301,13 @@ public class Translate extends Fragment {
         });
     }
 
+
+    /**
+     * Method which determines translation presence in cache. If it is just gets it from cache and call setters.
+     * Otherwise call TranslationProcessor to get it from the Internet.
+     * @param lang Language to translate into.
+     * @param text Text which is needed to be translated.
+     */
     private void translate(String lang, String text) {
         try {
             String translation = translationMap.get(lang).get(text)[0];
@@ -249,10 +321,17 @@ public class Translate extends Fragment {
         }
     }
 
+    /**
+     * Setter for translation field.
+     * @param text Text to set.
+     */
     private void setTranslation(String text) {
         translation.setText(text);
     }
 
+    /**
+     * Saves cached translation on hard drive.
+     */
     @Override
     public void onPause() {
         FileStorage.Save(FileStorage.TRANSLATIONS, translationMap);
@@ -260,6 +339,10 @@ public class Translate extends Fragment {
         super.onPause();
     }
 
+    /**
+     * Setter for dictionary field.
+     * @param dictionary Dictionary field in JSON format.
+     */
     private void setDictionaryList(String dictionary) {
 
         JSONObject json;
@@ -278,7 +361,10 @@ public class Translate extends Fragment {
         }
     }
 
-    private class DictionaryDownloader extends AsyncTask<String, Void, JSONObject> {
+    /**
+     * Async task to download available languages from the internet.
+     */
+    private class LanguagesDownloader extends AsyncTask<String, Void, JSONObject> {
 
         @Override
         protected JSONObject doInBackground(String... params) {
@@ -327,6 +413,9 @@ public class Translate extends Fragment {
         }
     }
 
+    /**
+     * Async task to download translation from the internet.
+     */
     private class TranslationProcessor extends AsyncTask<String, Void, String[]> {
 
         @Override
