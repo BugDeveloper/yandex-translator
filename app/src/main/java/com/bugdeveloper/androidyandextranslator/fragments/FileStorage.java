@@ -15,19 +15,18 @@ public final class FileStorage {
     }
 
     public static final String LANGUAGES = "LANGUAGES.DAT";
-    public static final String CACHE_DIR = "cache";
+    public static final String TRANSLATIONS = "TRANSLATIONS.DAT";
+
+    public static String CACHE_PATH;
 
     public static void CreateDir(Context context) {
-        context.getDir(CACHE_DIR, Context.MODE_PRIVATE);
+        context.getDir("cache", Context.MODE_PRIVATE);
+        CACHE_PATH = context.getFilesDir().getPath() + "/" + "cache";
     }
 
-    public static boolean FileExists(String path, String fileName) {
-        return new File(path + "/" + fileName).exists();
-    }
+    public static void Save(String fileName, Object obj) {
 
-    public static void Save(String path, String fileName, Object obj) {
-
-        File directory = new File(path);
+        File directory = new File(CACHE_PATH);
 
         if (!directory.exists()) {
             directory.mkdirs();
@@ -36,7 +35,7 @@ public final class FileStorage {
         File file = new File(directory, fileName);
 
         try {
-            FileOutputStream fos = new FileOutputStream(file, true);
+            FileOutputStream fos = new FileOutputStream(file, false);
             ObjectOutputStream os = new ObjectOutputStream(fos);
             os.writeObject(obj);
             os.close();
@@ -46,12 +45,11 @@ public final class FileStorage {
         }
     }
 
-    public static Object Load(String directory, String fileName) {
+    public static Object Load(String fileName) throws IOException {
 
-        String path = directory + "/" + fileName;
+        String path = CACHE_PATH + "/" + fileName;
 
         Object obj = null;
-        try {
             FileInputStream fis = new FileInputStream(path);
             ObjectInputStream is = new ObjectInputStream(fis);
             try {
@@ -61,9 +59,6 @@ public final class FileStorage {
             }
             is.close();
             fis.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         return obj;
     }
 }

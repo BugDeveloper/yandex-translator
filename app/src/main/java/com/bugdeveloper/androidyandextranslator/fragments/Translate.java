@@ -31,7 +31,9 @@ import com.google.common.collect.HashBiMap;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -50,6 +52,7 @@ public class Translate extends Fragment {
     private View fragmentView;
 
     private static BiMap<String, String> languageMap;
+    private static HashMap<String, HashMap<String, String[]>> translationMap;
 
     private EditText inputText;
     private TextView translation;
@@ -66,9 +69,30 @@ public class Translate extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         fragmentView = inflater.inflate(R.layout.translate_fragment, container, false);
         FileStorage.CreateDir(getActivity());
-        new DictionaryDownloader().execute(uiLanguageCode);
+
+        initializeLanguageMap();
+        initializeTranslationMap();
 
         return fragmentView;
+    }
+
+    private void initializeLanguageMap() {
+        try {
+            languageMap = (BiMap<String, String>) FileStorage.Load(FileStorage.LANGUAGES);
+            initializeView();
+        } catch (IOException e) {
+            languageMap = HashBiMap.create();
+            new DictionaryDownloader().execute(uiLanguageCode);
+        }
+    }
+
+    private void initializeTranslationMap() {
+        try {
+            translationMap = (HashMap<String, HashMap<String, String[]>>) FileStorage.Load(FileStorage.TRANSLATIONS);
+        } catch (IOException e) {
+            e.printStackTrace();
+            translationMap = new HashMap<>();
+        }
     }
 
     public static BiMap<String, String> GetDictionary() {
@@ -199,9 +223,6 @@ public class Translate extends Fragment {
                     return;
                 }
 
-                if (translationThread.getStatus() == AsyncTask.Status.RUNNING)
-                    translationThread.cancel(false);
-
                 String lang;
 
                 if (autoDetection) {
@@ -210,25 +231,44 @@ public class Translate extends Fragment {
                     lang = getLangCode(getSourceLang()) + '-' + getLangCode(getDestLang());
                 }
 
-                Log.i(TAG, "lang before async: " + lang);
-                translationThread = new TranslationProcessor().execute(lang, s.toString());
+                translate(lang, s.toString());
             }
         });
     }
 
-    private void setTranslation(JSONObject json) {
-
-        Log.i(TAG, json.toString());
+    private void translate(String lang, String text) {
         try {
-            translation.setText(json.getJSONArray("text").get(0).toString());
-        } catch (JSONException e) {
-            e.printStackTrace();
+            String translation = translationMap.get(lang).get(text)[0];
+            String dictionary = translationMap.get(lang).get(text)[1];
+            setTranslation(translation);
+            setDictionaryList(dictionary);
+        } catch (NullPointerException e) {
+            if (translationThread.getStatus() == AsyncTask.Status.RUNNING)
+                translationThread.cancel(false);
+            translationThread = new TranslationProcessor().execute(lang, text);
         }
     }
 
-    private void setDictionaryList(JSONObject json) {
+    private void setTranslation(String text) {
+        translation.setText(text);
+    }
 
-        Log.i(TAG, json.toString());
+    @Override
+    public void onPause() {
+        FileStorage.Save(FileStorage.TRANSLATIONS, translationMap);
+        Log.i(TAG, "onPause");
+        super.onPause();
+    }
+
+    private void setDictionaryList(String dictionary) {
+
+        JSONObject json;
+        try {
+            json = new JSONObject(dictionary);
+        } catch (JSONException e) {
+            e.printStackTrace();
+            return;
+        }
 
         try {
             ListAdapter jsonAdapter = new JsonAdapter(getActivity(), json.getJSONArray("def"));
@@ -243,25 +283,13 @@ public class Translate extends Fragment {
         @Override
         protected JSONObject doInBackground(String... params) {
 
-            String pathToCache = getActivity().getFilesDir().getPath();
-
             String json;
 
-            languageMap = HashBiMap.create();
+            List<BasicNameValuePair> args = new ArrayList<>(2);
+            args.add(new BasicNameValuePair("key", TRANSLATE_KEY));
+            args.add(new BasicNameValuePair("ui", params[0]));
 
-            if (FileStorage.FileExists(pathToCache, FileStorage.LANGUAGES)) {
-                json = (String) FileStorage.Load(pathToCache, FileStorage.LANGUAGES);
-            } else {
-                List<BasicNameValuePair> args = new ArrayList<>(2);
-                args.add(new BasicNameValuePair("key", TRANSLATE_KEY));
-                args.add(new BasicNameValuePair("ui", params[0]));
-
-                json = QuerySender.PostQuery(LANGUAGES_API, args);
-
-                FileStorage.Save(pathToCache, FileStorage.LANGUAGES, json);
-
-                Log.i(TAG, json);
-            }
+            json = QuerySender.PostQuery(LANGUAGES_API, args);
 
             JSONObject jsonObj = null;
 
@@ -288,61 +316,73 @@ public class Translate extends Fragment {
                     e.printStackTrace();
                 }
             }
+
+            FileStorage.Save(FileStorage.LANGUAGES, languageMap);
             initializeView();
         }
     }
 
-    private class TranslationProcessor extends AsyncTask<String, Void, JSONObject[]> {
-
-        private String lang;
+    private class TranslationProcessor extends AsyncTask<String, Void, String[]> {
 
         @Override
-        protected void onPostExecute(JSONObject[] jsonArray) {
+        protected void onPostExecute(String[] result) {
 
-            if (jsonArray == null || jsonArray[0] == null || jsonArray[1] == null) return;
+            for (String string : result) {
+                if (string == null || string.length() == 0)
+                    return;
+            }
 
-            setTranslation(jsonArray[0]);
-            setDictionaryList(jsonArray[1]);
+            String lang = result[0].substring(result[0].length() - 2, result[0].length()), text = result[1], translation = result[2], dictionary = result[3];
 
-            if (!languageMap.inverse().get(getSourceLang()).equals(lang.substring(0, 2))) {
-                sourceLang.setText(languageMap.get(lang.substring(0, 2)));
+            translationMap.putIfAbsent(lang, new HashMap<>());
+
+            translationMap.get(lang).putIfAbsent(text, new String[]{translation, dictionary});
+
+            setTranslation(translation);
+            setDictionaryList(dictionary);
+
+            String sourceLangText = getSourceLang();
+
+            String curLang = languageMap.inverse().get(sourceLangText);
+
+            if (!curLang.equals(lang)) {
+                sourceLang.setText(languageMap.get(lang));
             }
         }
 
         @Override
-        protected JSONObject[] doInBackground(String... params) {
+        protected String[] doInBackground(String... params) {
 
-            Log.i(TAG, "lang: " + params[0]);
-            Log.i(TAG, "text: " + params[1]);
+            String lang = params[0], text = params[1];
 
-            JSONObject dictionaryJson = null;
-            JSONObject translateJson = null;
+            String dictionary = null;
+            String translation = null;
 
             try {
                 List<BasicNameValuePair> args = new ArrayList<>(4);
                 args.add(new BasicNameValuePair("key", TRANSLATE_KEY));
-                args.add(new BasicNameValuePair("lang", params[0]));
-                args.add(new BasicNameValuePair("text", params[1]));
+                args.add(new BasicNameValuePair("lang", lang));
+                args.add(new BasicNameValuePair("text", text));
                 args.add(new BasicNameValuePair("ui", uiLanguageCode));
 
-                translateJson = new JSONObject(QuerySender.PostQuery(DataStorage.TRANSLATE_API, args));
+                JSONObject response = new JSONObject(QuerySender.PostQuery(DataStorage.TRANSLATE_API, args));
 
-                lang = translateJson.getString("lang");
+                translation = response.getJSONArray("text").getString(0);
+
+                lang = response.getString("lang");
 
                 args = new ArrayList<>(3);
                 args.add(new BasicNameValuePair("key", DataStorage.DICTIONARY_KEY));
                 args.add(new BasicNameValuePair("lang", lang));
-                args.add(new BasicNameValuePair("text", params[1]));
+                args.add(new BasicNameValuePair("text", text));
 
-                dictionaryJson = new JSONObject(QuerySender.PostQuery(DataStorage.DICTIONARY_API, args));
-
+                dictionary = QuerySender.PostQuery(DataStorage.DICTIONARY_API, args);
             } catch (JSONException e) {
                 e.printStackTrace();
                 cancel(false);
             }
 
-
-            return new JSONObject[]{translateJson, dictionaryJson};
+            return new String[]{lang, text, translation, dictionary};
         }
 
     }
