@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/AndroidYandexTranslator.iml" filepath="$PROJECT_DIR$/AndroidYandexTranslator.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/yandex-translator.iml" filepath="$PROJECT_DIR$/yandex-translator.iml" />
     </modules>
   </component>
 </project>

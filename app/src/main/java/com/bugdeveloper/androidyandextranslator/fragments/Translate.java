@@ -261,7 +261,6 @@ public class Translate extends Fragment {
                 FileStorage.Save(pathToCache, FileStorage.LANGUAGES, json);
 
                 Log.i(TAG, json);
-
             }
 
             JSONObject jsonObj = null;
@@ -313,57 +312,35 @@ public class Translate extends Fragment {
         @Override
         protected JSONObject[] doInBackground(String... params) {
 
-            String splitter = "|";
-
-            String pathToCache = getActivity().getFilesDir().getPath() + "/" + FileStorage.CACHE_DIR;
-            String fileName = String.valueOf((params[0] + "." + params[1]).hashCode());
-
             Log.i(TAG, "lang: " + params[0]);
             Log.i(TAG, "text: " + params[1]);
-            Log.i(TAG, "Path: " + pathToCache);
 
             JSONObject dictionaryJson = null;
             JSONObject translateJson = null;
 
-            if (FileStorage.FileExists(pathToCache, fileName)) {
-                String cache = (String) FileStorage.Load(pathToCache, fileName);
-                String[] parsed = cache.split(splitter);
+            try {
+                List<BasicNameValuePair> args = new ArrayList<>(4);
+                args.add(new BasicNameValuePair("key", TRANSLATE_KEY));
+                args.add(new BasicNameValuePair("lang", params[0]));
+                args.add(new BasicNameValuePair("text", params[1]));
+                args.add(new BasicNameValuePair("ui", uiLanguageCode));
 
-                try {
-                    translateJson = new JSONObject(parsed[0]);
-                    dictionaryJson = new JSONObject(parsed[1]);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    cancel(false);
-                }
-            } else {
-                try {
-                    List<BasicNameValuePair> args = new ArrayList<>(4);
-                    args.add(new BasicNameValuePair("key", TRANSLATE_KEY));
-                    args.add(new BasicNameValuePair("lang", params[0]));
-                    args.add(new BasicNameValuePair("text", params[1]));
-                    args.add(new BasicNameValuePair("ui", uiLanguageCode));
+                translateJson = new JSONObject(QuerySender.PostQuery(DataStorage.TRANSLATE_API, args));
 
-                    translateJson = new JSONObject(QuerySender.PostQuery(DataStorage.TRANSLATE_API, args));
+                lang = translateJson.getString("lang");
 
-                    lang = translateJson.getString("lang");
+                args = new ArrayList<>(3);
+                args.add(new BasicNameValuePair("key", DataStorage.DICTIONARY_KEY));
+                args.add(new BasicNameValuePair("lang", lang));
+                args.add(new BasicNameValuePair("text", params[1]));
 
-                    args = new ArrayList<>(3);
-                    args.add(new BasicNameValuePair("key", DataStorage.DICTIONARY_KEY));
-                    args.add(new BasicNameValuePair("lang", lang));
-                    args.add(new BasicNameValuePair("text", params[1]));
+                dictionaryJson = new JSONObject(QuerySender.PostQuery(DataStorage.DICTIONARY_API, args));
 
-                    dictionaryJson = new JSONObject(QuerySender.PostQuery(DataStorage.DICTIONARY_API, args));
-
-                    String res = translateJson.toString() + splitter + dictionaryJson.toString();
-
-                    FileStorage.Save(pathToCache, fileName, res);
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    cancel(false);
-                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+                cancel(false);
             }
+
 
             return new JSONObject[]{translateJson, dictionaryJson};
         }
