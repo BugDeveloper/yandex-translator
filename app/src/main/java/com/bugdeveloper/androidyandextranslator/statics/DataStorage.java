@@ -1,4 +1,4 @@
-package com.bugdeveloper.androidyandextranslator;
+package com.bugdeveloper.androidyandextranslator.statics;
 
 public final class DataStorage {
 

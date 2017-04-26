@@ -1,6 +1,4 @@
-package com.bugdeveloper.androidyandextranslator.fragments;
-
-import com.bugdeveloper.androidyandextranslator.DataStorage;
+package com.bugdeveloper.androidyandextranslator.statics;
 
 import org.apache.commons.io.IOUtils;
 

@@ -21,8 +21,10 @@ import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.bugdeveloper.androidyandextranslator.DataStorage;
-import com.bugdeveloper.androidyandextranslator.JsonAdapter;
+import com.bugdeveloper.androidyandextranslator.statics.DataStorage;
+import com.bugdeveloper.androidyandextranslator.statics.FileStorage;
+import com.bugdeveloper.androidyandextranslator.adapters.JsonAdapter;
+import com.bugdeveloper.androidyandextranslator.statics.QuerySender;
 import com.bugdeveloper.androidyandextranslator.R;
 import com.bugdeveloper.androidyandextranslator.SelectLanguage;
 import com.google.common.collect.BiMap;
@@ -40,8 +42,8 @@ import java.util.Locale;
 
 import cz.msebera.android.httpclient.message.BasicNameValuePair;
 
-import static com.bugdeveloper.androidyandextranslator.DataStorage.LANGUAGES_API;
-import static com.bugdeveloper.androidyandextranslator.DataStorage.TRANSLATE_KEY;
+import static com.bugdeveloper.androidyandextranslator.statics.DataStorage.LANGUAGES_API;
+import static com.bugdeveloper.androidyandextranslator.statics.DataStorage.TRANSLATE_KEY;
 
 public class Translate extends Fragment {
 
@@ -52,7 +54,7 @@ public class Translate extends Fragment {
     private View fragmentView;
 
     private static BiMap<String, String> languageMap;
-    private static HashMap<String, HashMap<String, String[]>> translationMap;
+    private static HashMap<String, HashMap<String, Translation>> translationMap;
 
     private EditText inputText;
     private TextView translation;
@@ -90,12 +92,16 @@ public class Translate extends Fragment {
         }
     }
 
+    public static HashMap<String, HashMap<String, Translation>> GetTranslations () {
+        return translationMap;
+    }
+
     /**
      * Method initializeTranslationMap serves for getting HashMap of translations from cache.
      */
     private void initializeTranslationMap() {
         try {
-            translationMap = (HashMap<String, HashMap<String, String[]>>) FileStorage.Load(FileStorage.TRANSLATIONS);
+            translationMap = (HashMap<String, HashMap<String, Translation>>) FileStorage.Load(FileStorage.TRANSLATIONS);
         } catch (IOException e) {
             e.printStackTrace();
             translationMap = new HashMap<>();
@@ -181,8 +187,6 @@ public class Translate extends Fragment {
 
     /**
      * Sets chosen language.
-     * @param requestCode
-     * @param resultCode
      * @param data Returned Intent data with set language parameter.
      */
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -208,7 +212,7 @@ public class Translate extends Fragment {
      * Call to all button initialization methods.
      */
     private void initializeButtons() {
-        initializeClear();
+//        initializeClear();
     }
 
     /**
@@ -299,6 +303,11 @@ public class Translate extends Fragment {
                 translate(lang, s.toString());
             }
         });
+        inputText.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) return;
+
+
+        });
     }
 
 
@@ -310,8 +319,8 @@ public class Translate extends Fragment {
      */
     private void translate(String lang, String text) {
         try {
-            String translation = translationMap.get(lang).get(text)[0];
-            String dictionary = translationMap.get(lang).get(text)[1];
+            String translation = translationMap.get(lang).get(text).getWordTranslation();
+            String dictionary = translationMap.get(lang).get(text).getDictionaryTranslation();
             setTranslation(translation);
             setDictionaryList(dictionary);
         } catch (NullPointerException e) {
@@ -430,7 +439,7 @@ public class Translate extends Fragment {
 
             translationMap.putIfAbsent(lang, new HashMap<>());
 
-            translationMap.get(lang).putIfAbsent(text, new String[]{translation, dictionary});
+            translationMap.get(lang).putIfAbsent(text, new Translation(new String[]{translation, dictionary}, false));
 
             setTranslation(translation);
             setDictionaryList(dictionary);
@@ -476,10 +485,7 @@ public class Translate extends Fragment {
                 args.add(new BasicNameValuePair("text", text));
 
                 dictionary = QuerySender.PostQuery(DataStorage.DICTIONARY_API, args);
-            } catch (JSONException e) {
-                e.printStackTrace();
-                cancel(false);
-            } catch (IOException e) {
+            } catch (JSONException | IOException e) {
                 e.printStackTrace();
                 cancel(false);
             }

@@ -8,21 +8,52 @@ import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
+import android.widget.EditText;
+
+import com.bugdeveloper.androidyandextranslator.fragments.History;
 import com.bugdeveloper.androidyandextranslator.fragments.Bookmarks;
-import com.bugdeveloper.androidyandextranslator.fragments.Settings;
 import com.bugdeveloper.androidyandextranslator.fragments.Translate;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements History.HistoryEventListener {
 
     private Fragment translate, bookmarks, settings;
 
+    private BottomNavigationView navigation;
+
     private int curId = R.id.navigation_translate;
 
-    private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
-            = new BottomNavigationView.OnNavigationItemSelectedListener() {
+    private void SwitchFragmentTo(Fragment fragment) {
+        FragmentManager fm = getFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        ft.replace(R.id.content, fragment);
+        ft.commit();
+    }
 
-        @Override
-        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+    private void InitializeContent() {
+        FragmentManager fm = getFragmentManager();
+        FragmentTransaction ft = fm.beginTransaction();
+        ft.replace(R.id.content, translate);
+        ft.commit();
+    }
+
+    private void InitializeFragments() {
+        translate = new Translate();
+        bookmarks = new History();
+        settings = new Bookmarks();
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        InitializeFragments();
+        InitializeContent();
+        SwitchFragmentTo(translate);
+
+        navigation = (BottomNavigationView) findViewById(R.id.navigation);
+
+        navigation.setOnNavigationItemSelectedListener(item -> {
 
             if (curId == item.getItemId()) return true;
 
@@ -42,42 +73,12 @@ public class MainActivity extends AppCompatActivity {
             }
 
             return false;
-        }
-
-    };
-
-    private void SwitchFragmentTo(Fragment fragment) {
-        FragmentManager fm = getFragmentManager();
-        FragmentTransaction ft = fm.beginTransaction();
-        ft.replace(R.id.content, fragment);
-        ft.commit();
-    }
-
-    private void InitializeContent() {
-        FragmentManager fm = getFragmentManager();
-        FragmentTransaction ft = fm.beginTransaction();
-        ft.replace(R.id.content, translate);
-        ft.commit();
-    }
-
-    private void InitializeFragments() {
-        translate = new Translate();
-        bookmarks = new Bookmarks();
-        settings = new Settings();
+        });
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        InitializeFragments();
-        InitializeContent();
-        SwitchFragmentTo(translate);
-
-        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
-
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+    public void SwitchToTranslateWithWord(String word) {
+        navigation.getMenu().getItem(0).setChecked(true);
+        ((EditText)findViewById(R.id.InputField)).setText(word);
     }
-
 }

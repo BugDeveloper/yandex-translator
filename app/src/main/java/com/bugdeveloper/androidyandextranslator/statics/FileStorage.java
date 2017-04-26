@@ -1,6 +1,7 @@
-package com.bugdeveloper.androidyandextranslator.fragments;
+package com.bugdeveloper.androidyandextranslator.statics;
 
 import android.content.Context;
+import android.util.Log;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -14,6 +15,7 @@ public final class FileStorage {
     private FileStorage() {
     }
 
+    public static final String TAG = "FileStorage";
     public static final String LANGUAGES = "LANGUAGES.DAT";
     public static final String TRANSLATIONS = "TRANSLATIONS.DAT";
 

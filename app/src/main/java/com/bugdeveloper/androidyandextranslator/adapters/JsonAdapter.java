@@ -1,4 +1,4 @@
-package com.bugdeveloper.androidyandextranslator;
+package com.bugdeveloper.androidyandextranslator.adapters;
 
 import android.app.Activity;
 import android.view.View;
@@ -7,6 +7,8 @@ import android.widget.BaseAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.TextView;
+
+import com.bugdeveloper.androidyandextranslator.R;
 
 import org.json.JSONArray;
 import org.json.JSONException;

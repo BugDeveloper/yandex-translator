@@ -20,7 +20,7 @@ public class SelectLanguage extends AppCompatActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.select_language);
-        ListView languageList = (ListView) findViewById(R.id.LanguageList);
+        ListView languageList = (ListView) findViewById(R.id.HistoryList);
 
         if (Translate.GetDictionary() == null || Translate.GetDictionary().size() == 0) return;
 

@@ -9,16 +9,12 @@ import android.view.ViewGroup;
 
 import com.bugdeveloper.androidyandextranslator.R;
 
-/**
- * Created by crack on 4/20/2017.
- */
-
 public class Bookmarks extends Fragment {
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.bookmarks_fragment, container, false);
+        View view = inflater.inflate(R.layout.settings_fragment, container, false);
 
         return view;
     }
